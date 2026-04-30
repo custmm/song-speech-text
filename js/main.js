@@ -1,71 +1,42 @@
 // js/main.js
 
-const songInput = document.getElementById('song-input');
-const songListContainer = document.getElementById('song-list'); // HTML에 이 ID를 가진 <ul> 태그가 필요합니다.
-const addBtn = document.getElementById('add-btn'); // 직접 입력 시 사용할 추가 버튼
-
-// 1. 노래 리스트 배열 (데이터 저장소)
-let idolSongs = [];
-
-// 2. 리스트 추가 함수
-function addSong() {
-    const songTitle = songInput.value.trim();
-    
-    if (songTitle !== "") {
-        idolSongs.push(songTitle); // 배열에 추가
-        renderList(); // 화면 갱신
-        songInput.value = ""; // 입력창 비우기
-    }
-}
-
-// 3. 화면에 리스트를 그려주는 함수
-function renderList() {
-    songListContainer.innerHTML = ""; // 기존 리스트 초기화
-    
-    idolSongs.forEach((song, index) => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-            <span>${song}</span>
-            <button onclick="deleteSong(${index})">삭제</button>
-        `;
-        songListContainer.appendChild(li);
-    });
-}
-
-// 4. 삭제 기능 (소소한 추가 기능)
-function deleteSong(index) {
-    idolSongs.splice(index, 1);
-    renderList();
-}
-
-// 버튼 클릭 이벤트 연결
-addBtn.addEventListener('click', addSong);
-
-// 엔터키 지원
-songInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') addSong();
-});
-
-// HTML이 로드된 후 실행하여 요소를 찾지 못하는 오류 방지 
+// HTML이 완전히 로드된 후 실행하여 null 참조 오류를 방지합니다 [cite: 132]
 document.addEventListener('DOMContentLoaded', () => {
+    // 가사가 표시될 영역과 음성 인식 버튼을 가져옵니다
     const transcriptDisplay = document.getElementById('transcript-display');
     const voiceBtn = document.getElementById('voice-btn');
+    const songInput = document.getElementById('song-input');
 
-    // 전역 함수로 등록하여 speech.js에서 호출 가능하게 함
+    // 1. 전역 함수 등록: speech.js에서 최종 인식된 텍스트를 이 함수로 보냅니다 [cite: 125]
     window.appendToTranscript = function(text) {
         if (text.trim() !== "" && transcriptDisplay) {
             const p = document.createElement('p');
             p.innerText = text;
             p.style.margin = "8px 0";
+            p.style.padding = "5px";
+            p.style.borderBottom = "1px dashed #ddd";
             transcriptDisplay.appendChild(p);
+            
+            // 새 가사가 추가되면 자동으로 아래로 스크롤합니다 [cite: 125]
             transcriptDisplay.scrollTop = transcriptDisplay.scrollHeight;
         }
     };
 
-    // 만약 HTML에 add-btn이 있다면 아래 코드도 이 안에 넣으세요.
-    // 없으면 삭제하거나 주석 처리하면 오류가 사라집니다. [cite: 91]
-    const addBtn = document.getElementById('add-btn');
-    if (addBtn) {
-        addBtn.addEventListener('click', () => { /* 클릭 로직 */ });
+    // 2. 오류 방지 로직: HTML에 해당 ID가 있을 때만 이벤트를 연결합니다 [cite: 91]
+    // 42번 라인에서 발생하던 오류를 해결하는 부분입니다
+    if (voiceBtn) {
+        // voice-btn에 대한 추가적인 클릭 로직이 필요하다면 여기에 작성합니다.
+        // (현재 음성 시작/정지 로직은 speech.js에 있으므로 비워두어도 무방합니다)
+    }
+
+    // 곡 제목 입력창(song-input)이 있다면 엔터키 지원
+    if (songInput) {
+        songInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const text = songInput.value;
+                window.appendToTranscript(text);
+                songInput.value = "";
+            }
+        });
     }
 });
