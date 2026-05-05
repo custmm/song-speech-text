@@ -47,6 +47,7 @@ if (SpeechRecognition) {
         
         if (event.error === 'network') {
             alert("네트워크 에러: HTTPS 연결 확인 및 Chrome/Edge 브라우저를 사용해 주세요.");
+            isListening = false;
         }
         
         if (event.error === 'no-speech') {
@@ -58,11 +59,14 @@ if (SpeechRecognition) {
         btn.innerText = "🎤 다시 시도 (음성 인식)";
     };
 
-    // 마이크가 예기치 않게 꺼졌을 때 상태 업데이트
+// 마이크 인식이 끝났을 때의 처리 (중요!)
     recognition.onend = () => {
-        isListening = false;
-        if(btn.innerText !== "🎤 노래 시작 (음성 인식)") {
-            btn.innerText = "🎤 다시 시도 (음성 인식)";
+        // 사용자가 중단 버튼을 누르지 않았는데 꺼진 경우 (no-speech 등) 자동으로 재시작
+        if (isListening) {
+            console.log("음성 인식 재시작 중...");
+            recognition.start();
+        } else {
+            btn.innerText = "🎤 노래 시작 (음성 인식)";
         }
     };
 
